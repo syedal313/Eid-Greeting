@@ -407,15 +407,16 @@
         <div class="greeting-card">
             <div class="eid-title">Eid Mubarak</div>
             <div class="eid-arabic">عيد مبارك</div>
+            <div class="blessing">تقبل الله منا ومنكم</div>
             <div class="signature" id="signature">by syed shah ali</div>
-            <div class="hint"><i></i> created By Shah Ali  <i></i></div>
+            <div class="hint"><i></i> click anywhere for fireworks <i></i></div>
         </div>
 
         <!-- personalization form -->
         <div class="personalization-panel">
             <h3>✨ personalize & share</h3>
             <div class="form-group">
-                <input type="text" id="nameInput" placeholder="enter your name (e.g. Aliyan Boss)" maxlength="70">
+                <input type="text" id="nameInput" placeholder="enter your name (e.g. Aisha)" maxlength="50">
                 <button id="generateBtn">generate link</button>
             </div>
             <div class="link-output" id="linkOutput" style="display: none;">
@@ -624,8 +625,13 @@
             if (nameFromUrl && nameFromUrl.trim() !== '') {
                 const decodedName = decodeURIComponent(nameFromUrl).trim();
                 signatureEl.textContent = `by ${decodedName}`;
+                
+                // ---- FIX: Remove the query parameter from the URL ----
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+                // ------------------------------------------------------
             } else {
-                signatureEl.textContent = 'by syed shah ali'; // default
+                signatureEl.textContent = 'by syed shah ali';
             }
 
             // generate link
@@ -635,7 +641,6 @@
                     alert('Please enter a name.');
                     return;
                 }
-                // sanitize: remove extra spaces, but keep as is
                 const encodedName = encodeURIComponent(name);
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('name', encodedName);
@@ -652,8 +657,6 @@
                 copyBtn.textContent = 'copied!';
                 setTimeout(() => { copyBtn.textContent = 'copy'; }, 1500);
             });
-
-            // if there's already a name from URL, show the link output prefilled? optionally we can, but keep it simple.
         })();
     </script>
 </body>
