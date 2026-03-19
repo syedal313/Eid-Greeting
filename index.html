@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eid Mubarak · personalize your greeting</title>
+    <!-- lean & elegant fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Great+Vibes&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at 40% 40%, #1a1f35, #0b0d1a);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto; /* allow scrolling for form if needed */
+            color: #fff;
+        }
+
+        /* canvas – optimized */
+        #fireworksCanvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .interactive-overlay {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            padding: 1.5rem;
+        }
+
+        /* card – simplified shadows, reduced blur intensity */
+        .greeting-card {
+            pointer-events: auto;
+            width: min(90%, 680px);
+            background: rgba(10, 15, 30, 0.35);
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 4rem 1.5rem 4rem 1.5rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 223, 100, 0.2) inset, 0 0 30px rgba(255, 200, 50, 0.3);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.3s;
+            animation: cardGlow 4s infinite alternate;
+            margin-bottom: 2rem;
+        }
+
+        .greeting-card:hover {
+            box-shadow: 0 30px 70px rgba(255, 215, 0, 0.25), 0 0 0 2px rgba(255, 240, 150, 0.5) inset;
+            transform: scale(1.005);
+        }
+
+        .eid-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(4rem, 14vw, 7rem);
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(145deg, #fcee9f, #ffc857, #f9a826);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px #ffb347, 0 0 50px #ffdb7e;
+            margin-bottom: 0.3rem;
+            letter-spacing: 1px;
+            animation: levitate 5s infinite alternate ease-in-out;
+        }
+
+        .eid-arabic {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.6rem;
+            color: #fff6d9;
+            text-shadow: 0 0 20px #fdbb4c, 2px 2px 8px rgba(0,0,0,0.5);
+            margin-top: -0.6rem;
+            margin-bottom: 0.8rem;
+            opacity: 0.95;
+            animation: softShine 3s infinite;
+        }
+
+        .blessing {
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #f7e5c2;
+            background: linear-gradient(90deg, transparent, rgba(255,200,100,0.15), transparent);
+            padding: 0.6rem 0;
+            margin: 1rem 0;
+        }
+
+        .signature {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #ffe5b4, #ffd966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            border-top: 2px dashed rgba(255, 215, 0, 0.5);
+            border-bottom: 2px dashed rgba(255, 215, 0, 0.5);
+            padding: 0.5rem 1.8rem;
+            margin-top: 1rem;
+            text-shadow: 0 0 20px #fbbf24;
+            animation: fadeSlideIn 1s ease-out;
+        }
+
+        .hint {
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 200, 0.5);
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .hint i {
+            width: 6px;
+            height: 6px;
+            background: gold;
+            border-radius: 50%;
+            box-shadow: 0 0 10px gold;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* floating ornaments – minimal */
+        .floating-ornaments {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .ornament {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.15;
+            background: radial-gradient(circle, rgba(255,220,100,0.5) 0%, rgba(200,150,50,0) 70%);
+        }
+
+        .ornament1 {
+            width: 40vmax;
+            height: 40vmax;
+            top: -10vh;
+            left: -10vw;
+            background: #ffbb33;
+        }
+
+        .ornament2 {
+            width: 40vmin;
+            height: 40vmin;
+            bottom: 0;
+            right: 0;
+            background: #aa80ff;
+            filter: blur(50px);
+        }
+
+        .crescent-moon {
+            position: absolute;
+            top: 8%;
+            right: 8%;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff9e6, #ffe68f);
+            box-shadow: 0 0 40px #ffd966;
+            filter: blur(4px);
+            z-index: 2;
+            pointer-events: none;
+        }
+        .crescent-moon::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 15px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #1a1f35;
+        }
+
+        .lantern {
+            position: absolute;
+            bottom: 5%;
+            left: 3%;
+            width: 50px;
+            height: 80px;
+            background: rgba(255, 180, 60, 0.25);
+            border-radius: 40% 40% 20% 20%;
+            filter: blur(18px);
+            box-shadow: 0 -10px 15px 5px #ffaa33;
+            z-index: 2;
+            animation: lanternSwing 10s infinite alternate;
+        }
+
+        /* keyframes */
+        @keyframes cardGlow {
+            0% { border-color: rgba(255,215,0,0.3); box-shadow: 0 25px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,223,100,0.2) inset; }
+            100% { border-color: rgba(255,200,0,0.7); box-shadow: 0 25px 70px rgba(255,200,0,0.3), 0 0 0 2px rgba(255,240,150,0.3) inset; }
+        }
+        @keyframes levitate {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+        @keyframes softShine {
+            0% { text-shadow: 0 0 15px #fbbf24; }
+            50% { text-shadow: 0 0 30px #fdbb4c; }
+            100% { text-shadow: 0 0 15px #fbbf24; }
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes lanternSwing {
+            0% { transform: rotate(2deg) translateX(0); }
+            100% { transform: rotate(-2deg) translateX(8px); }
+        }
+
+        /* personalization form – sleek, glassy, below card */
+        .personalization-panel {
+            pointer-events: auto;
+            width: min(90%, 600px);
+            background: rgba(10, 15, 30, 0.4);
+            backdrop-filter: blur(10px) saturate(160%);
+            -webkit-backdrop-filter: blur(10px) saturate(160%);
+            border-radius: 2.5rem 1rem 2.5rem 1rem;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            padding: 1.8rem 2rem;
+            margin-top: 1rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+            color: #f0e6d2;
+        }
+
+        .personalization-panel h3 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.8rem;
+            font-weight: 400;
+            margin-bottom: 1.2rem;
+            color: #ffdfaa;
+            border-left: 4px solid #f9a826;
+            padding-left: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group input {
+            flex: 2 1 200px;
+            padding: 0.9rem 1.5rem;
+            background: rgba(255,255,240,0.1);
+            border: 1px solid rgba(255,215,0,0.5);
+            border-radius: 3rem;
+            font-size: 1rem;
+            color: white;
+            outline: none;
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus {
+            border-color: #f9a826;
+            box-shadow: 0 0 15px #f9a82666;
+            background: rgba(255,255,240,0.15);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255,255,200,0.6);
+            font-weight: 300;
+        }
+
+        .form-group button {
+            flex: 1 0 auto;
+            background: linear-gradient(145deg, #f9a826, #ffc857);
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1a1f35;
+            cursor: pointer;
+            box-shadow: 0 5px 20px #ffb34799;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,200,0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px #ffb347;
+        }
+
+        .link-output {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: stretch;
+        }
+
+        .link-box {
+            display: flex;
+            background: rgba(0,0,0,0.4);
+            border-radius: 3rem;
+            border: 1px solid rgba(255,215,0,0.4);
+            overflow: hidden;
+        }
+
+        .link-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            color: #ffe7b0;
+            font-size: 0.9rem;
+            outline: none;
+            font-family: 'Inter', monospace;
+        }
+
+        .link-box button {
+            background: rgba(255,200,100,0.2);
+            border: none;
+            border-left: 1px solid rgba(255,215,0,0.4);
+            padding: 0 1.5rem;
+            color: #ffdb8e;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .link-box button:hover {
+            background: rgba(255,215,0,0.3);
+            color: #fff0c0;
+        }
+
+        .note {
+            font-size: 0.85rem;
+            color: rgba(255,255,200,0.5);
+            text-align: center;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(4px);
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: #ffe3a5;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,215,0,0.3);
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <div class="floating-ornaments">
+        <div class="ornament ornament1"></div>
+        <div class="ornament ornament2"></div>
+    </div>
+
+    <div class="crescent-moon"></div>
+    <div class="lantern"></div>
+
+    <div class="interactive-overlay" id="interactiveOverlay">
+        <!-- main greeting card -->
+        <div class="greeting-card">
+            <div class="eid-title">Eid Mubarak</div>
+            <div class="eid-arabic">عيد مبارك</div>
+            <div class="signature" id="signature">by syed shah ali</div>
+            <div class="hint"><i></i> created By Shah Ali  <i></i></div>
+        </div>
+
+        <!-- personalization form -->
+        <div class="personalization-panel">
+            <h3>✨ personalize & share</h3>
+            <div class="form-group">
+                <input type="text" id="nameInput" placeholder="enter your name (e.g. Aliyan Boss)" maxlength="70">
+                <button id="generateBtn">generate link</button>
+            </div>
+            <div class="link-output" id="linkOutput" style="display: none;">
+                <div class="link-box">
+                    <input type="text" id="generatedLink" readonly>
+                    <button id="copyBtn">copy</button>
+                </div>
+                <div class="note">share this link — your name will appear on the card</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="click-hint">✨ tap / click to burst</div>
+
+    <script>
+        (function() {
+            // ========== OPTIMIZED FIREWORKS (LOW FOOTPRINT) ==========
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+
+            let particles = [];
+            const MAX_PARTICLES = 280;         // performance friendly
+            const COLORS = [
+                'hsl(50, 100%, 65%)',   // gold
+                'hsl(40, 100%, 60%)',   // amber
+                'hsl(30, 100%, 60%)',   // orange
+                'hsl(350, 90%, 70%)',   // pink
+                'hsl(280, 90%, 70%)',   // lavender
+                'hsl(200, 90%, 65%)',   // sky
+            ];
+
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function createExplosion(centerX, centerY) {
+                const count = 30 + Math.floor(Math.random() * 30); // 30-60 particles
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const speed = 2 + Math.random() * 6;
+                    const vx = Math.cos(angle) * speed * (0.7 + Math.random() * 0.6);
+                    const vy = Math.sin(angle) * speed * (0.7 + Math.random() * 0.6) - 1.0;
+
+                    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+                    const life = 0.8 + Math.random() * 0.5;
+                    const size = 2.5 + Math.random() * 5;
+                    const gravity = 0.02 + Math.random() * 0.06;
+
+                    particles.push({
+                        x: centerX, y: centerY,
+                        vx, vy,
+                        life, maxLife: life,
+                        color, size,
+                        gravity,
+                        fade: 0.008 + Math.random() * 0.015,
+                    });
+                }
+            }
+
+            function updateParticles() {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.vx *= 0.99;
+                    p.vy *= 0.99;
+                    p.life -= p.fade;
+
+                    if (p.life <= 0.01 || p.y > height + 60 || p.y < -60 || p.x < -60 || p.x > width + 60) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+
+            function drawParticles() {
+                ctx.globalCompositeOperation = 'lighter';
+                for (let p of particles) {
+                    const opacity = Math.min(p.life * 1.2, 0.9);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color.replace('hsl', 'hsla').replace(')', `, ${opacity})`);
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                ctx.globalCompositeOperation = 'source-over';
+            }
+
+            function drawBackground() {
+                const grad = ctx.createLinearGradient(0, 0, width*0.5, height);
+                grad.addColorStop(0, '#0d1128');
+                grad.addColorStop(0.7, '#1b1f3b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, width, height);
+
+                // static tiny stars
+                ctx.fillStyle = 'rgba(255, 255, 200, 0.3)';
+                for (let i = 0; i < 40; i++) {
+                    const x = (i * 97) % width;
+                    const y = (i * 43) % height;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+
+            function spawnFirework() {
+                if (particles.length > MAX_PARTICLES - 50) return;
+                const x = 100 + Math.random() * (width - 200);
+                const y = 80 + Math.random() * (height * 0.5);
+                createExplosion(x, y);
+            }
+
+            function animate() {
+                drawBackground();
+                updateParticles();
+                drawParticles();
+
+                if (particles.length < MAX_PARTICLES - 70) {
+                    if (Math.random() < 0.02) spawnFirework();
+                    if (Math.random() < 0.01) spawnFirework();
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            // initial bursts
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    if (!width) return;
+                    const x = width * (0.3 + 0.5 * Math.random());
+                    const y = height * (0.2 + 0.4 * Math.random());
+                    createExplosion(x, y);
+                }, i * 250 + 200);
+            }
+
+            // ========== INTERACTION ==========
+            const overlay = document.getElementById('interactiveOverlay');
+
+            // click fireworks
+            overlay.addEventListener('click', (e) => {
+                // ignore if click on form inputs/buttons (they have pointer-events auto)
+                const target = e.target;
+                if (target.closest('input') || target.closest('button')) return;
+
+                const canvasX = e.clientX;
+                const canvasY = e.clientY;
+                for (let b = 0; b < 3; b++) {
+                    setTimeout(() => {
+                        createExplosion(canvasX + (Math.random()-0.5)*70, canvasY + (Math.random()-0.5)*60);
+                    }, b * 60);
+                }
+                createExplosion(canvasX, canvasY);
+            });
+
+            overlay.addEventListener('touchstart', (e) => {
+                const target = e.target;
+                if (target.closest('input') || target.closest('button')) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const canvasX = touch.clientX;
+                const canvasY = touch.clientY;
+                for (let b = 0; b < 2; b++) {
+                    setTimeout(() => {
+                        createExplosion(canvasX + (Math.random()-0.5)*60, canvasY + (Math.random()-0.5)*50);
+                    }, b * 70);
+                }
+                createExplosion(canvasX, canvasY);
+            }, { passive: false });
+
+            // card tilt effect
+            const card = document.querySelector('.greeting-card');
+            overlay.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const offsetX = (e.clientX - (rect.left + rect.width/2)) / 40;
+                const offsetY = (e.clientY - (rect.top + rect.height/2)) / 30;
+                card.style.transform = `perspective(600px) rotateY(${offsetX}deg) rotateX(${-offsetY}deg) scale(1.005)`;
+            });
+            overlay.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+
+            // ========== PERSONALIZATION & URL PARAM ==========
+            const signatureEl = document.getElementById('signature');
+            const nameInput = document.getElementById('nameInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const linkOutput = document.getElementById('linkOutput');
+            const generatedLinkInput = document.getElementById('generatedLink');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // get URL parameter 'name'
+            const urlParams = new URLSearchParams(window.location.search);
+            const nameFromUrl = urlParams.get('name');
+            if (nameFromUrl && nameFromUrl.trim() !== '') {
+                const decodedName = decodeURIComponent(nameFromUrl).trim();
+                signatureEl.textContent = `by ${decodedName}`;
+            } else {
+                signatureEl.textContent = 'by syed shah ali'; // default
+            }
+
+            // generate link
+            generateBtn.addEventListener('click', () => {
+                let name = nameInput.value.trim();
+                if (name === '') {
+                    alert('Please enter a name.');
+                    return;
+                }
+                // sanitize: remove extra spaces, but keep as is
+                const encodedName = encodeURIComponent(name);
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('name', encodedName);
+                const shareableLink = currentUrl.toString();
+
+                generatedLinkInput.value = shareableLink;
+                linkOutput.style.display = 'flex';
+            });
+
+            // copy link
+            copyBtn.addEventListener('click', () => {
+                generatedLinkInput.select();
+                document.execCommand('copy');
+                copyBtn.textContent = 'copied!';
+                setTimeout(() => { copyBtn.textContent = 'copy'; }, 1500);
+            });
+
+            // if there's already a name from URL, show the link output prefilled? optionally we can, but keep it simple.
+        })();
+    </script>
+</body>
+</html>
